@@ -171,7 +171,7 @@ namespace myStructs {
 		vector<float> colors;
 
 		unordered_map<string, unsigned int> uniqueVertices;
-		unordered_map<Vector3, vector<Vector3>> neighbourMap;
+		unordered_map<string, vector<Vector3>> neighbourMap;
 
 		std::vector<Vector3> mins;
 		std::vector<Vector3> maxs;
@@ -212,17 +212,18 @@ namespace myStructs {
 			{
 				//add connected vertices to neighbours map
 				Vector3 v = vertices[triangles[i]];
-				if (neighbourMap.find(v) == neighbourMap.end()) {
+				if (neighbourMap.find(v.toString()) == neighbourMap.end()) {
 					//doesnt exist, add it to list
 					vector<Vector3> neighbours;
+					neighbours.push_back(vertices[triangles[i]]);
 					neighbours.push_back(vertices[triangles[i + 1]]);
 					neighbours.push_back(vertices[triangles[i + 2]]);
-					neighbourMap.insert({ v, neighbours });
+					neighbourMap.insert({ v.toString(), neighbours});
 				}
 				else {
 					//does exist, add neighbours
-					neighbourMap[v].push_back(vertices[triangles[i + 1]]);
-					neighbourMap[v].push_back(vertices[triangles[i + 2]]);
+					neighbourMap[v.toString()].push_back(vertices[triangles[i + 1]]);
+					neighbourMap[v.toString()].push_back(vertices[triangles[i + 2]]);
 				}
 			}
 			//could use neighbour map to generate normals
@@ -232,7 +233,7 @@ namespace myStructs {
 
 		void FreeMeshMap() {
 			//free unordered map memory by replacing with empty unordered map
-			unordered_map<Vector3, vector<Vector3>> empty;
+			unordered_map<string, vector<Vector3>> empty;
 			std::swap(neighbourMap, empty);
 		}
 
@@ -244,7 +245,7 @@ namespace myStructs {
 			//iterating over meighbour map list for critcal points
 			for (auto vertex = neighbourMap.begin(); vertex != neighbourMap.end(); vertex++)
 			{
-				Vector3 currPos = vertex->first; //the string in the format "(x,y,z)"
+				Vector3 currPos = vertex->second[0]; //the string in the format "(x,y,z)"
 				/*posheight = posheight.substr(1, posheight.length() - 2);//removing parentheses
 				//get x, y, and z coords out of string by splitting at ','
 				std::stringstream positionString(posheight);
@@ -258,7 +259,7 @@ namespace myStructs {
 				//test if current vertex is a max or min
 				bool isMax = true;
 				bool isMin = true;
-				for (int i = 0; i < vertex->second.size(); i++) {
+				for (int i = 1; i < vertex->second.size(); i++) {
 					{
 						Vector3 neighbour = vertex->second[i];
 						if (neighbour.y >= currPos.y) isMax = false;
