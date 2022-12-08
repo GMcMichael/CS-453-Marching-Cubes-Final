@@ -41,8 +41,8 @@ namespace myStructs {
 
 		std::string Vector3::toString(int precision = 2) {
 			stringstream stream;
-			stream.precision(precision);
-			stream << fixed;
+			//stream.precision(precision);
+			//stream << fixed;
 			stream << "(" << x << "," << y << "," << z << ")";
 			return stream.str();
 		}
@@ -80,8 +80,8 @@ namespace myStructs {
 
 		std::string Vector4::toString(int precision = 2) {
 			stringstream stream;
-			stream.precision(precision);
-			stream << fixed;
+			//stream.precision(precision);
+			//stream << fixed;
 			stream << "(" << x << "," << y << "," << z << "): " << w;
 			return stream.str();
 		}
@@ -278,6 +278,11 @@ namespace myStructs {
 				}
 				if (isMax) {
 					maxs.push_back(currPos);
+					std::cout << "found max: " << currPos.toString() << ". neighbours: ";
+					for (int i = 0; i < vertex->second.size(); i++) {
+						std::cout << vertex->second[i].toString() << ", ";
+					}
+					std::cout << std::endl;
 				}
 			}
 			std::cout << "Done." << std::endl;
