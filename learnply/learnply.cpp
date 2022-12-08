@@ -99,12 +99,25 @@ Main program.
 
 float surface = 0;
 float surfaceDelta = 0.1;
-float testRadius = 50;
+float testRadius = 10;
+bool makeNeighbourMap = false;
 bool moving = false;
 float delta = 1;
 float maxOffset = 0;//5;
+float lastTime;
 ms::Vector3 center = ms::Vector3(0, maxOffset, 0);
+
+void printElapsedTime(float time = -1) {
+	float elapsedTime = glutGet(GLUT_ELAPSED_TIME) - (time == -1 ? lastTime : time);
+	if (elapsedTime < 1000)
+		std::cout << "Elapsed time: " << elapsedTime << " milliseconds.\n" << std::endl;
+	else
+		std::cout << "Elapsed time: " << (elapsedTime / 1000) << " seconds.\n" << std::endl;
+}
+
 void Remarch() {
+	std::cout << "Marching at surface = " << surface << std::endl;
+	lastTime = glutGet(GLUT_ELAPSED_TIME);
 	if (moving) {
 		if (center.y >= maxOffset || center.y <= -maxOffset) delta *= -1;
 		center.y += delta;
@@ -112,6 +125,15 @@ void Remarch() {
 	}
 	currentMesh = TestMarchingCubesSphere(surface);
 	//currentMesh = MarchDataset(GetCurrentDataset(), surface);
+	
+	std::cout << currentMesh.triangles.size() / 3 << " triangles" << std::endl;
+	printElapsedTime();
+
+	if (makeNeighbourMap) {
+		lastTime = glutGet(GLUT_ELAPSED_TIME);
+		currentMesh.AnalyzeVertices();
+		printElapsedTime();
+	}
 }
 
 int main(int argc, char* argv[])
@@ -129,7 +151,9 @@ int main(int argc, char* argv[])
 
 	/*-----------MY STUFF BELOW-----------*/
 	/*load images from file*/
+	lastTime = glutGet(GLUT_ELAPSED_TIME);
 	GenerateTestData(testRadius, center);
+	printElapsedTime();
 	Remarch();
 	//if (OpenDataset("CubeTest", 127)) Remarch();
 	//if (OpenDataset("SphereTest", 127)) Remarch();
@@ -389,7 +413,7 @@ Process a keyboard action.  In particular, exit the program when an
 
 void change_surface(float n) {
 	surface += n;
-	std::cout << "Surface: " << surface << std::endl;
+	//std::cout << "Surface: " << surface << std::endl;
 	Remarch();
 }
 
@@ -421,7 +445,6 @@ void keyboard(unsigned char key, int x, int y) {
 
 	case '3':
 		display_mode = 3;
-		Remarch();
 		glutPostRedisplay();
 		break;
 	case '+':
@@ -434,6 +457,30 @@ void keyboard(unsigned char key, int x, int y) {
 		break;
 	case 'a':
 		currentMesh.AnalyzeVertices();
+		break;
+	case 'b':
+		currentMesh.FindCriticalPoints();
+		std::cout << "Drawing this many mins: " << currentMesh.mins.size() << std::endl;
+		std::cout << "Drawing this many maxs: " << currentMesh.maxs.size() << std::endl;
+		//std::cout << "Drawing this many saddles: " << currentMesh.saddles.size() << std::endl;
+		//dram mins
+		for (int k = 0; k < currentMesh.mins.size(); k++) {
+			ms::Vector3 point = currentMesh.mins[k];
+			drawDot(point.x, point.y, point.z, 0.15, 0, 0, 1);
+		}
+		// draw maxs
+		for (int k = 0; k < currentMesh.maxs.size(); k++) {
+			ms::Vector3 point = currentMesh.maxs[k];
+			drawDot(point.x, point.y, point.z, 0.15, 1);
+		}
+		/* draw saddles
+		for (int k = 0; k < currentMesh.saddles.size(); k++)
+		{
+			ms::Vector3 point = currentMesh.saddles[k];
+			drawDot(point.x, point.y, point.z, 0.15, 0, 1);
+		}*/
+		std::cout << "Done." << std::endl;
+		break;
 	case 'r':	// reset rotation and transformation
 		mat_ident(rotmat);
 		translation[0] = 0;
