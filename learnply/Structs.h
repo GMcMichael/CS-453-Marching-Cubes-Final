@@ -257,10 +257,10 @@ namespace myStructs {
 						if (neighbour.y < currPos.y) isMin = false;
 
 					}
-					//if isMax or isMin add point to list
-					if (isMin) mins.push_back(currPos);
-					if (isMax) maxs.push_back(currPos);
 				}
+				//if isMax or isMin add point to list
+				if (isMin) mins.push_back(currPos);
+				if (isMax) maxs.push_back(currPos);
 			}
 			std::cout << "Done.\n" << std::endl;
 		}
