@@ -97,6 +97,7 @@ void display_mesh();
 Main program.
 ******************************************************************************/
 
+bool drawCriticalPoints = false;
 float surface = 0;
 float surfaceDelta = 0.1;
 float testRadius = 10;
@@ -459,8 +460,10 @@ void keyboard(unsigned char key, int x, int y) {
 		currentMesh.AnalyzeVertices();
 		break;
 	case 'b':
-		display_mode = 4;
 		currentMesh.FindCriticalPoints();
+		break;
+	case 'c':
+		drawCriticalPoints = !drawCriticalPoints;
 		break;
 	case 'r':	// reset rotation and transformation
 		mat_ident(rotmat);
@@ -861,6 +864,8 @@ void draw_mesh() {
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
+
+	if (drawCriticalPoints) DrawCriticalPoints();
 }
 
 void display_mesh()
@@ -913,14 +918,6 @@ void display_mesh()
 		glDisable(GL_LIGHTING);
 
 		draw_mesh();
-
-		break;
-	}
-	case 4: {
-		glDisable(GL_LIGHTING);
-
-		draw_mesh();
-		DrawCriticalPoints();
 
 		break;
 	}
