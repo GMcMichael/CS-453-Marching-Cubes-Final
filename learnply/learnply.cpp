@@ -458,12 +458,15 @@ void keyboard(unsigned char key, int x, int y) {
 		break;
 	case 'a':
 		currentMesh.AnalyzeVertices();
+		glutPostRedisplay();
 		break;
 	case 'b':
 		currentMesh.FindCriticalPoints();
+		glutPostRedisplay();
 		break;
 	case 'c':
 		drawCriticalPoints = !drawCriticalPoints;
+		glutPostRedisplay();
 		break;
 	case 'r':	// reset rotation and transformation
 		mat_ident(rotmat);
