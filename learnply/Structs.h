@@ -262,7 +262,9 @@ namespace myStructs {
 				if (isMin) mins.push_back(currPos);
 				if (isMax) maxs.push_back(currPos);
 			}
-			std::cout << "Done.\n" << std::endl;
+			std::cout << "Done." << std::endl;
+			std::cout << "Found " << mins.size() << " min crit points." << std::endl;
+			std::cout << "Found " << maxs.size() << " max crit points.\n" << std::endl;
 		}
 	};
 

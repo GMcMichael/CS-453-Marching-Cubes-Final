@@ -459,27 +459,8 @@ void keyboard(unsigned char key, int x, int y) {
 		currentMesh.AnalyzeVertices();
 		break;
 	case 'b':
+		display_mode = 4;
 		currentMesh.FindCriticalPoints();
-		std::cout << "Drawing this many mins: " << currentMesh.mins.size() << std::endl;
-		std::cout << "Drawing this many maxs: " << currentMesh.maxs.size() << std::endl;
-		//std::cout << "Drawing this many saddles: " << currentMesh.saddles.size() << std::endl;
-		//dram mins
-		for (int k = 0; k < currentMesh.mins.size(); k++) {
-			ms::Vector3 point = currentMesh.mins[k];
-			drawDot(point.x, point.y, point.z, 0.15, 0, 0, 1);
-		}
-		// draw maxs
-		for (int k = 0; k < currentMesh.maxs.size(); k++) {
-			ms::Vector3 point = currentMesh.maxs[k];
-			drawDot(point.x, point.y, point.z, 0.15, 1);
-		}
-		/* draw saddles
-		for (int k = 0; k < currentMesh.saddles.size(); k++)
-		{
-			ms::Vector3 point = currentMesh.saddles[k];
-			drawDot(point.x, point.y, point.z, 0.15, 0, 1);
-		}*/
-		std::cout << "Done." << std::endl;
 		break;
 	case 'r':	// reset rotation and transformation
 		mat_ident(rotmat);
@@ -847,23 +828,21 @@ void display(void)
 
 void DrawCriticalPoints() {
 	// draw mins
-	for (int k = 0; k < critMins.size(); k++)
-	{
-		icVector3 point = critMins[k];
+	for (int k = 0; k < currentMesh.mins.size(); k++) {
+		ms::Vector3 point = currentMesh.mins[k];
 		drawDot(point.x, point.y, point.z, 0.15, 0, 0, 1);
 	}
 	// draw maxs
-	for (int k = 0; k < critMaxs.size(); k++)
-	{
-		icVector3 point = critMaxs[k];
+	for (int k = 0; k < currentMesh.maxs.size(); k++) {
+		ms::Vector3 point = currentMesh.maxs[k];
 		drawDot(point.x, point.y, point.z, 0.15, 1);
 	}
-	// draw saddles
-	for (int k = 0; k < critSaddles.size(); k++)
+	/* draw saddles
+	for (int k = 0; k < currentMesh.saddles.size(); k++)
 	{
-		icVector3 point = critSaddles[k];
+		ms::Vector3 point = currentMesh.saddles[k];
 		drawDot(point.x, point.y, point.z, 0.15, 0, 1);
-	}
+	}*/
 }
 
 /******************************************************************************
@@ -937,7 +916,14 @@ void display_mesh()
 
 		break;
 	}
-	break;
+	case 4: {
+		glDisable(GL_LIGHTING);
+
+		draw_mesh();
+		DrawCriticalPoints();
+
+		break;
+	}
 	default:
 	{
 		// don't draw anything
