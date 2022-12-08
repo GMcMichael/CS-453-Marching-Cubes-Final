@@ -46,11 +46,11 @@ namespace myStructs {
 			stream << "(" << x << "," << y << "," << z << ")";
 			return stream.str();
 		}
-	};
 
-	bool operator==(const Vector3& v1, const Vector3& v2) {
-		return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z);
-	}
+		bool Equals(const Vector3& other) {
+			return (this->x == other.x) && (this->y == other.y) && (this->z == other.z);
+		}
+	};
 
 	struct Vector4 : Vector3 {
 		float w;
@@ -85,11 +85,11 @@ namespace myStructs {
 			stream << "(" << x << "," << y << "," << z << "): " << w;
 			return stream.str();
 		}
-	};
 
-	bool operator==(const Vector4& v1, const Vector4& v2) {
-		return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z) && (v1.z == v2.z);
-	}
+		bool Equals(const Vector4& other) {
+			return Vector3::Equals(other) && (this->w == other.w);
+		}
+	};
 
 	struct Dataset {
 	private:
