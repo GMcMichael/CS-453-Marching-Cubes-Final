@@ -85,7 +85,7 @@ void mousewheel(int wheel, int direction, int x, int y);
 void reshape(int width, int height);
 
 /*functions for element picking*/
-void display_vertices(GLenum mode, Polyhedron* poly);
+void display_vertices(GLenum mode);
 void display_quads(GLenum mode, Polyhedron* poly);
 //void display_selected_vertex(Polyhedron* poly);
 //void display_selected_quad(Polyhedron* poly);
@@ -100,7 +100,7 @@ Main program.
 bool drawCriticalPoints = false;
 float surface = 0;
 float surfaceDelta = 0.1;
-float testRadius = 10;
+float testRadius = 2;
 bool makeNeighbourMap = false;
 bool moving = false;
 float delta = 1;
@@ -393,16 +393,16 @@ void display_quads(GLenum mode, Polyhedron* this_poly)
 Diaplay all vertices for selection
 ******************************************************************************/
 
-void display_vertices(GLenum mode, Polyhedron* this_poly)
+void display_vertices(GLenum mode)
 {
-	for (int i = 0; i < this_poly->nverts; i++) {
+	for (int i = 0; i < currentMesh.vertices.size(); i++) {
 		if (mode == GL_SELECT)
 			glLoadName(i + 1);
 
 		CHECK_GL_ERROR();
 
-		Vertex* temp_v = this_poly->vlist[i];
-		drawDot(temp_v->x, temp_v->y, temp_v->z, 0.15);
+		ms::Vector3 temp_v = currentMesh.vertices[i];
+		drawDot(temp_v.x, temp_v.y, temp_v.z, 0.15);
 	}
 	CHECK_GL_ERROR();
 }
@@ -618,7 +618,7 @@ void mouse(int button, int state, int x, int y) {
 
 				set_view(GL_SELECT);
 				set_scene(GL_SELECT);
-				display_vertices(GL_SELECT, poly);
+				display_vertices(GL_SELECT);
 
 				glMatrixMode(GL_PROJECTION);
 				glPopMatrix();

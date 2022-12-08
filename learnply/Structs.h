@@ -48,6 +48,10 @@ namespace myStructs {
 		}
 	};
 
+	bool operator==(const Vector3& v1, const Vector3& v2) {
+		return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z);
+	}
+
 	struct Vector4 : Vector3 {
 		float w;
 
@@ -82,6 +86,10 @@ namespace myStructs {
 			return stream.str();
 		}
 	};
+
+	bool operator==(const Vector4& v1, const Vector4& v2) {
+		return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z) && (v1.z == v2.z);
+	}
 
 	struct Dataset {
 	private:
@@ -163,7 +171,7 @@ namespace myStructs {
 		vector<float> colors;
 
 		unordered_map<string, unsigned int> uniqueVertices;
-		unordered_map<string, vector<Vector3>> neighbourMap;
+		unordered_map<Vector3, vector<Vector3>> neighbourMap;
 
 		std::vector<Vector3> mins;
 		std::vector<Vector3> maxs;
@@ -204,17 +212,17 @@ namespace myStructs {
 			{
 				//add connected vertices to neighbours map
 				Vector3 v = vertices[triangles[i]];
-				if (neighbourMap.find(v.toString()) == neighbourMap.end()) {
+				if (neighbourMap.find(v) == neighbourMap.end()) {
 					//doesnt exist, add it to list
 					vector<Vector3> neighbours;
 					neighbours.push_back(vertices[triangles[i + 1]]);
 					neighbours.push_back(vertices[triangles[i + 2]]);
-					neighbourMap.insert({ v.toString(), neighbours });
+					neighbourMap.insert({ v, neighbours });
 				}
 				else {
 					//does exist, add neighbours
-					neighbourMap[v.toString()].push_back(vertices[triangles[i + 1]]);
-					neighbourMap[v.toString()].push_back(vertices[triangles[i + 2]]);
+					neighbourMap[v].push_back(vertices[triangles[i + 1]]);
+					neighbourMap[v].push_back(vertices[triangles[i + 2]]);
 				}
 			}
 			//could use neighbour map to generate normals
@@ -224,7 +232,7 @@ namespace myStructs {
 
 		void FreeMeshMap() {
 			//free unordered map memory by replacing with empty unordered map
-			unordered_map<string, vector<Vector3>> empty;
+			unordered_map<Vector3, vector<Vector3>> empty;
 			std::swap(neighbourMap, empty);
 		}
 
@@ -236,8 +244,8 @@ namespace myStructs {
 			//iterating over meighbour map list for critcal points
 			for (auto vertex = neighbourMap.begin(); vertex != neighbourMap.end(); vertex++)
 			{
-				string posheight = vertex->first; //the string in the format "(x,y,z)"
-				posheight = posheight.substr(1, posheight.length() - 2);//removing parentheses
+				Vector3 currPos = vertex->first; //the string in the format "(x,y,z)"
+				/*posheight = posheight.substr(1, posheight.length() - 2);//removing parentheses
 				//get x, y, and z coords out of string by splitting at ','
 				std::stringstream positionString(posheight);
 				std::string segment;
@@ -245,7 +253,7 @@ namespace myStructs {
 				while (std::getline(positionString, segment, ',')) {
 					poslist.push_back(stof(segment));
 				}
-				Vector3 currPos = Vector3(poslist[0], poslist[1], poslist[2]);
+				Vector3 currPos = Vector3(poslist[0], poslist[1], poslist[2]);*/
 
 				//test if current vertex is a max or min
 				bool isMax = true;
@@ -253,14 +261,23 @@ namespace myStructs {
 				for (int i = 0; i < vertex->second.size(); i++) {
 					{
 						Vector3 neighbour = vertex->second[i];
-						if (neighbour.y > currPos.y) isMax = false;
-						if (neighbour.y < currPos.y) isMin = false;
+						if (neighbour.y >= currPos.y) isMax = false;
+						if (neighbour.y <= currPos.y) isMin = false;
 
 					}
 				}
 				//if isMax or isMin add point to list
-				if (isMin) mins.push_back(currPos);
-				if (isMax) maxs.push_back(currPos);
+				if (isMin) {
+					mins.push_back(currPos);
+					std::cout << "found min: " << currPos.toString() << ". neighbours: ";
+					for (int i = 0; i < vertex->second.size(); i++) {
+						std::cout << vertex->second[i].toString() << ", ";
+					}
+					std::cout << std::endl;
+				}
+				if (isMax) {
+					maxs.push_back(currPos);
+				}
 			}
 			std::cout << "Done." << std::endl;
 			std::cout << "Found " << mins.size() << " min crit points." << std::endl;
