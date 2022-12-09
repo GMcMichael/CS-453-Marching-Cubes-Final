@@ -97,6 +97,9 @@ void display_mesh();
 Main program.
 ******************************************************************************/
 
+bool shiftToggle = false;
+bool noiseToggle = false;
+int noiseLayers = 1;
 int criticalPointsMode = 0;
 float surface = 0;
 float surfaceDelta = 0.1;
@@ -118,11 +121,12 @@ void printElapsedTime(float time = -1) {
 
 void Remarch() {
 	std::cout << "Marching at surface = " << surface << std::endl;
+	if (noiseToggle) std::cout << "Noise Layers: " << noiseLayers << std::endl;
 	lastTime = glutGet(GLUT_ELAPSED_TIME);
 	if (moving) {
 		if (center.y >= maxOffset || center.y <= -maxOffset) delta *= -1;
 		center.y += delta;
-		GenerateTestData(testRadius, center);
+		GenerateTestData(testRadius, center, noiseLayers);
 	}
 	currentMesh = TestMarchingCubesSphere(surface);
 	//currentMesh = MarchDataset(GetCurrentDataset(), surface);
@@ -153,7 +157,7 @@ int main(int argc, char* argv[])
 	/*-----------MY STUFF BELOW-----------*/
 	/*load images from file*/
 	lastTime = glutGet(GLUT_ELAPSED_TIME);
-	GenerateTestData(testRadius, center);
+	GenerateTestData(testRadius, center, 0);
 	printElapsedTime();
 	Remarch();
 	//if (OpenDataset("CubeTest", 127)) Remarch();
@@ -418,6 +422,18 @@ void change_surface(float n) {
 	Remarch();
 }
 
+void change_noise(int n) {
+	noiseLayers += n;
+	if (noiseLayers < 1) noiseLayers = 1;
+	GenerateTestData(testRadius, center, noiseLayers);
+	Remarch();
+}
+
+void toggleNoise() {
+	noiseToggle = !noiseToggle;
+	GenerateTestData(testRadius, center, noiseToggle == true ? noiseLayers : 0);
+}
+
 void keyboard(unsigned char key, int x, int y) {
 	int i;
 
@@ -425,15 +441,10 @@ void keyboard(unsigned char key, int x, int y) {
 	lines.clear();
 	points.clear();
 
-	//critMins.clear();
-	//critMaxs.clear();
-	//critSaddles.clear();
-
 	switch (key) {
 	case 27:	// set excape key to exit program
 		exit(0);
 		break;
-
 	case '1':	// solid color display with lighting
 		display_mode = 1;
 		glutPostRedisplay();
@@ -449,11 +460,13 @@ void keyboard(unsigned char key, int x, int y) {
 		glutPostRedisplay();
 		break;
 	case '+':
-		change_surface(surfaceDelta);
+		if (!(glutGetModifiers() & GLUT_ACTIVE_SHIFT)) change_surface(surfaceDelta);
+		else if(noiseToggle) change_noise(1);
 		glutPostRedisplay();
 		break;
 	case '-':
-		change_surface(-surfaceDelta);
+		if (!(glutGetModifiers() & GLUT_ACTIVE_SHIFT)) change_surface(-surfaceDelta);
+		else if(noiseToggle) change_noise(-1);
 		glutPostRedisplay();
 		break;
 	case 'a':
@@ -470,6 +483,11 @@ void keyboard(unsigned char key, int x, int y) {
 		break;
 	case 'd':
 		criticalPointsMode = (criticalPointsMode + 1) % 3;
+		glutPostRedisplay();
+		break;
+	case 'e':
+		toggleNoise();
+		Remarch();
 		glutPostRedisplay();
 		break;
 	case 'r':	// reset rotation and transformation

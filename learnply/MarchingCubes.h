@@ -3,11 +3,11 @@
 
 namespace ms = myStructs;
 
-void GenerateTestData(float radius, ms::Vector3 center);
+void GenerateTestData(float radius, ms::Vector3 center, int noiseLayers);
 
 float noise(float n);
 
-ms::Vector4* SphereDataset(int radius, int pointsPerAxis[3], ms::Vector3 center, int layers = 0);
+ms::Vector4* SphereDataset(int radius, int pointsPerAxis[3], ms::Vector3 center, int noiseLayers = 0);
 
 ms::Mesh TestMarchingCubesSphere(float surface);
 
