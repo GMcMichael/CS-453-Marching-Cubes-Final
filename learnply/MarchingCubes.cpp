@@ -16,7 +16,7 @@ float noise(float n) {
 	return value - iv;
 }
 
-ms::Vector4* SphereDataset(int radius, int pointsPerAxis[3], ms::Vector3 center) {
+ms::Vector4* SphereDataset(int radius, int pointsPerAxis[3], ms::Vector3 center, int layers) {
 	pointsPerAxis[0] = (radius + 1) * 2;
 	pointsPerAxis[1] = (radius + 1) * 2;
 	pointsPerAxis[2] = (radius + 1) * 2;
@@ -34,18 +34,18 @@ ms::Vector4* SphereDataset(int radius, int pointsPerAxis[3], ms::Vector3 center)
 		{
 			for (int x = 0; x < pointsPerAxis[0]; x++)
 			{
-				float value = center.Distance(x, y, z) - radius;// <= radius ? -1.0f : 1.0f;
-				//float frequency = 0.01;
-				//float amplitude = 1;
-				//int numLayers = 3;
-				//for (int i = 0; i < numLayers; i++)
-				//{
-				//	value += noise(x * frequency) * amplitude;
-				//	value += noise(y * frequency) * amplitude;
-				//	value += noise(z * frequency) * amplitude;
-				//	amplitude *= 0.5;
-				//	frequency *= 2;
-				//}
+				float value = center.Distance(x, y, z) - radius;
+				float frequency = 0.01;
+				float amplitude = 1;
+				int numLayers = layers;
+				for (int i = 0; i < numLayers; i++)
+				{
+					value += noise(x * frequency) * amplitude;
+					value += noise(y * frequency) * amplitude;
+					value += noise(z * frequency) * amplitude;
+					amplitude *= 0.5;
+					frequency *= 2;
+				}
 
 				values[indexFromCoord(x, y, z, pointsPerAxis)] = ms::Vector4(offset - x, offset - y, offset - z, value);
 			}
