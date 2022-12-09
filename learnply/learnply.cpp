@@ -469,7 +469,7 @@ void keyboard(unsigned char key, int x, int y) {
 		glutPostRedisplay();
 		break;
 	case 'd':
-		criticalPointsMode = (criticalPointsMode + 1) % 2;
+		criticalPointsMode = (criticalPointsMode + 1) % 3;
 		glutPostRedisplay();
 		break;
 	case 'r':	// reset rotation and transformation
