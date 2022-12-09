@@ -97,7 +97,7 @@ void display_mesh();
 Main program.
 ******************************************************************************/
 
-bool drawCriticalPoints = false;
+int criticalPointsMode = 0;
 float surface = 0;
 float surfaceDelta = 0.1;
 float testRadius = 5;
@@ -465,7 +465,11 @@ void keyboard(unsigned char key, int x, int y) {
 		glutPostRedisplay();
 		break;
 	case 'c':
-		drawCriticalPoints = !drawCriticalPoints;
+		currentMesh.ReduceCriticalPoints();
+		glutPostRedisplay();
+		break;
+	case 'd':
+		criticalPointsMode = (criticalPointsMode + 1) % 2;
 		glutPostRedisplay();
 		break;
 	case 'r':	// reset rotation and transformation
@@ -833,14 +837,28 @@ void display(void)
 }
 
 void DrawCriticalPoints() {
+	vector<ms::Vector3> currMins;
+	vector<ms::Vector3> currMaxs;
+	switch (criticalPointsMode) {
+		case 1:
+			currMins = currentMesh.mins;
+			currMaxs = currentMesh.maxs;
+			break;
+		case 2:
+			currMins = currentMesh.reducedMins;
+			currMaxs = currentMesh.reducedMaxs;
+			break;
+		default:
+			break;
+	}
 	// draw mins
-	for (int k = 0; k < currentMesh.mins.size(); k++) {
-		ms::Vector3 point = currentMesh.mins[k];
+	for (int k = 0; k < currMins.size(); k++) {
+		ms::Vector3 point = currMins[k];
 		drawDot(point.x, point.y, point.z, 0.15, 0, 0, 1);
 	}
 	// draw maxs
-	for (int k = 0; k < currentMesh.maxs.size(); k++) {
-		ms::Vector3 point = currentMesh.maxs[k];
+	for (int k = 0; k < currMaxs.size(); k++) {
+		ms::Vector3 point = currMaxs[k];
 		drawDot(point.x, point.y, point.z, 0.15, 1);
 	}
 	/* draw saddles
@@ -868,7 +886,7 @@ void draw_mesh() {
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 
-	if (drawCriticalPoints) DrawCriticalPoints();
+	DrawCriticalPoints();
 }
 
 void display_mesh()

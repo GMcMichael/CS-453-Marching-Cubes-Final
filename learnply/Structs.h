@@ -180,6 +180,9 @@ namespace myStructs {
 		std::vector<Vector3> maxs;
 		std::vector<Vector3> saddles;
 
+		std::vector<Vector3> reducedMins;
+		std::vector<Vector3> reducedMaxs;
+
 		void AddTriangle(Triangle triangle) {
 			AddVertex(triangle.v0, Vector3(1, 0, 0));
 			AddVertex(triangle.v1, Vector3(0, 1, 0));
@@ -208,6 +211,15 @@ namespace myStructs {
 			//triangles.push_back(index == -1 ? uniqueVertices[v.toString()] : index);
 		}
 
+		int getIndex(Vector3 v) {
+			for (int i = 0; i < analyzedVertices.size(); i++) {
+				if (v.Equals(analyzedVertices[i])) {
+					return i;
+				}
+			}
+			return -1;
+		}
+
 		void AnalyzeVertices() {
 			std::cout << "Making neighbours map from " << vertices.size() << " vertices." << std::endl;
 			analyzedVertices.clear();
@@ -223,14 +235,7 @@ namespace myStructs {
 				for (int j = 0; j < 3; j++) {
 					Vector3 v = triangleVertices[j];
 
-					int index = -1;
-					for (int k = 0; k < analyzedVertices.size(); k++) {
-						if (v.Equals(analyzedVertices[k])) {
-							index = k;
-							break;
-						}
-					}
-
+					int index = getIndex(v);
 					if (index == -1) {
 						//doesnt exist, add it to list
 						vector<Vector3> neighbours;
@@ -274,7 +279,7 @@ namespace myStructs {
 				bool isMin = true;
 				for (int j = 0; j < neighboursList[i].size(); j++) {
 					{
-						Vector3 neighbour = neighboursList[i][j];//to find critical points, get all mins that are neighbours and coord should be 1/n(sum(x), sum(y), sum(z))
+						Vector3 neighbour = neighboursList[i][j];
 						if (neighbour.y > currPos.y) isMax = false;
 						if (neighbour.y < currPos.y) isMin = false;
 			
@@ -284,9 +289,101 @@ namespace myStructs {
 				if (isMin) mins.push_back(currPos);
 				if (isMax) maxs.push_back(currPos);
 			}
+
 			std::cout << "Done." << std::endl;
 			std::cout << "Found " << mins.size() << " min crit points." << std::endl;
 			std::cout << "Found " << maxs.size() << " max crit points.\n" << std::endl;
+		}
+
+		void ReduceCriticalPoints() {
+			std::cout << "Reducing critical points." << std::endl;
+			reducedMins.clear();
+			reducedMaxs.clear();
+			//to find critical points, get all points that are neighbours and the coord is 1/n(sum(x), sum(y), sum(z))
+			
+			//for each min
+			for (int i = 0; i < mins.size(); i++) {
+				int index = getIndex(mins[i]);
+				//get neighbours of current point
+				vector<Vector3> neighbours = neighboursList[index];
+				//get each neighbour that is also a critical point
+				vector<Vector3> critNeighbours;
+				for (int j = 0; j < mins.size(); j++) {
+					if (critNeighbours.size() == neighbours.size()) break;
+					//check if each min is a neighbour
+					for (int k = 0; k < neighbours.size(); k++) {
+						if (mins[j].Equals(neighbours[k])) {
+							//neighbour is a crit
+							critNeighbours.push_back(neighbours[k]);
+							break;
+						}
+					}
+				}
+				if (critNeighbours.size() == 3) {//> 0) {
+					float multiplier = 1.0 / (critNeighbours.size() + 1);
+					float xSum = mins[i].x;
+					float ySum = mins[i].y;
+					float zSum = mins[i].z;
+					for (int j = 0; j < critNeighbours.size(); j++) {
+						xSum += critNeighbours[j].x;
+						ySum += critNeighbours[j].y;
+						zSum += critNeighbours[j].z;
+					}
+					Vector3 midPoint = Vector3((xSum * multiplier), (ySum * multiplier), (zSum * multiplier));
+					bool contains = false;
+					for (int j = 0; j < reducedMins.size(); j++) {
+						if (reducedMins[j].Equals(midPoint)) {
+							contains = true;
+							break;
+						}
+					}
+					if (!contains) reducedMins.push_back(midPoint);
+				}
+			}
+
+			//for each max
+			for (int i = 0; i < maxs.size(); i++) {
+				int index = getIndex(maxs[i]);
+				//get neighbours of current point
+				vector<Vector3> neighbours = neighboursList[index];
+				//get each neighbour that is also a critical point
+				vector<Vector3> critNeighbours;
+				for (int j = 0; j < maxs.size(); j++) {
+					if (critNeighbours.size() == neighbours.size()) break;
+					//check if each max is a neighbour
+					for (int k = 0; k < neighbours.size(); k++) {
+						if (maxs[j].Equals(neighbours[k])) {
+							//neighbour is a crit
+							critNeighbours.push_back(neighbours[k]);
+							break;
+						}
+					}
+				}
+				if (critNeighbours.size() == 3) {//> 0) {
+					float multiplier = 1.0 / (critNeighbours.size() + 1);
+					float xSum = maxs[i].x;
+					float ySum = maxs[i].y;
+					float zSum = maxs[i].z;
+					for (int j = 0; j < critNeighbours.size(); j++) {
+						xSum += critNeighbours[j].x;
+						ySum += critNeighbours[j].y;
+						zSum += critNeighbours[j].z;
+					}
+					Vector3 midPoint = Vector3((xSum * multiplier), (ySum * multiplier), (zSum * multiplier));
+					bool contains = false;
+					for (int j = 0; j < reducedMaxs.size(); j++) {
+						if (reducedMaxs[j].Equals(midPoint)) {
+							contains = true;
+							break;
+						}
+					}
+					if (!contains) reducedMaxs.push_back(midPoint);
+				}
+			}
+
+			std::cout << "Done." << std::endl;
+			std::cout << "Found " << reducedMins.size() << " min crit points." << std::endl;
+			std::cout << "Found " << reducedMaxs.size() << " max crit points.\n" << std::endl;
 		}
 	};
 
