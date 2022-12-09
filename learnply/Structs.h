@@ -11,6 +11,7 @@
 using namespace std;
 
 namespace myStructs {
+	#define EPSILON 1.0e-5
 
 	struct Vector3 {
 		float x;
@@ -48,7 +49,7 @@ namespace myStructs {
 		}
 
 		bool Equals(const Vector3& other) {
-			return (this->x == other.x) && (this->y == other.y) && (this->z == other.z);
+			return Distance(other) <= EPSILON;
 		}
 	};
 
@@ -87,7 +88,7 @@ namespace myStructs {
 		}
 
 		bool Equals(const Vector4& other) {
-			return Vector3::Equals(other) && (this->w == other.w);
+			return Vector3::Equals(other) && (abs(this->w - other.w) <= EPSILON);
 		}
 	};
 
@@ -171,7 +172,9 @@ namespace myStructs {
 		vector<float> colors;
 
 		unordered_map<string, unsigned int> uniqueVertices;
-		unordered_map<string, vector<Vector3>> neighbourMap;
+
+		vector<Vector3> analyzedVertices;
+		vector<vector<Vector3>> neighboursList;
 
 		std::vector<Vector3> mins;
 		std::vector<Vector3> maxs;
@@ -207,34 +210,55 @@ namespace myStructs {
 
 		void AnalyzeVertices() {
 			std::cout << "Making neighbours map from " << vertices.size() << " vertices." << std::endl;
+			analyzedVertices.clear();
+			neighboursList.clear();
 			//for each triangle
-			for (int i = 0; i < triangles.size(); i += 3)
-			{
-				//add connected vertices to neighbours map
-				Vector3 v = vertices[triangles[i]];
-				if (neighbourMap.find(v.toString()) == neighbourMap.end()) {
-					//doesnt exist, add it to list
-					vector<Vector3> neighbours;
-					neighbours.push_back(vertices[triangles[i]]);
-					neighbours.push_back(vertices[triangles[i + 1]]);
-					neighbours.push_back(vertices[triangles[i + 2]]);
-					neighbourMap.insert({ v.toString(), neighbours});
-				}
-				else {
-					//does exist, add neighbours
-					neighbourMap[v.toString()].push_back(vertices[triangles[i + 1]]);
-					neighbourMap[v.toString()].push_back(vertices[triangles[i + 2]]);
+			for (int i = 0; i < triangles.size(); i += 3) {
+				//for each vertex of the triangle
+				for (int j = 0; j < 3; j++) {
+					Vector3 v = vertices[triangles[i + j]];
+					int index = -1;
+					for (int k = 0; k < analyzedVertices.size(); k++) {
+						if (v.Equals(analyzedVertices[k])) {
+							index = k;
+							break;
+						}
+					}
+
+					if (index == -1) {
+						//doesnt exist, add it to list
+						if (v.Equals(Vector3(0.5, -0.5, 0.669099))) {
+							std::cout << "adding inital vertex: " << v.toString() << "\n" << std::endl;
+						}
+						vector<Vector3> neighbours;
+						neighbours.push_back(vertices[triangles[i + 1]]);
+						neighbours.push_back(vertices[triangles[i + 2]]);
+
+						analyzedVertices.push_back(v);
+						neighboursList.push_back(neighbours);
+					}
+					else {
+						//does exist, check and add neighbours
+						Vector3 v1 = vertices[triangles[i + 1]];
+						Vector3 v2 = vertices[triangles[i + 2]];
+						bool containsV1 = false;
+						bool containsV2 = false;
+						for (int k = 0; k < neighboursList[index].size(); k++) {
+							if (neighboursList[index][k].Equals(v1)) containsV1 = true;
+							if (neighboursList[index][k].Equals(v2)) containsV2 = true;
+							if (containsV1 && containsV2) break;
+						}
+						if(!containsV1) neighboursList[index].push_back(v1);
+						if(!containsV2) neighboursList[index].push_back(v2);
+						if (v.Equals(Vector3(0.5, -0.5, 0.669099))) {
+							std::cout << "vertex already exists, adding neighbours: " << (containsV1 == true ? v1.toString() + ", " : "") << (containsV2 == true ? v2.toString() : "") << "\n" << std::endl;
+						}
+					}
 				}
 			}
 			//could use neighbour map to generate normals
 			std::cout << "Done." << std::endl;
-			std::cout << neighbourMap.size() << " unique vertices.\n" << std::endl;
-		}
-
-		void FreeMeshMap() {
-			//free unordered map memory by replacing with empty unordered map
-			unordered_map<string, vector<Vector3>> empty;
-			std::swap(neighbourMap, empty);
+			std::cout << analyzedVertices.size() << " unique vertices.\n" << std::endl;
 		}
 
 		void FindCriticalPoints() {
@@ -242,47 +266,40 @@ namespace myStructs {
 			mins.clear();
 			maxs.clear();
 			saddles.clear();
-			//iterating over meighbour map list for critcal points
-			for (auto vertex = neighbourMap.begin(); vertex != neighbourMap.end(); vertex++)
-			{
-				Vector3 currPos = vertex->second[0]; //the string in the format "(x,y,z)"
-				/*posheight = posheight.substr(1, posheight.length() - 2);//removing parentheses
-				//get x, y, and z coords out of string by splitting at ','
-				std::stringstream positionString(posheight);
-				std::string segment;
-				std::vector<float> poslist;
-				while (std::getline(positionString, segment, ',')) {
-					poslist.push_back(stof(segment));
-				}
-				Vector3 currPos = Vector3(poslist[0], poslist[1], poslist[2]);*/
+			for (int i = 0; i < analyzedVertices.size(); i++) {
+				Vector3 currPos = analyzedVertices[i];
 
 				//test if current vertex is a max or min
 				bool isMax = true;
 				bool isMin = true;
-				for (int i = 1; i < vertex->second.size(); i++) {
+				for (int j = 0; j < neighboursList[i].size(); j++) {
 					{
-						Vector3 neighbour = vertex->second[i];
-						if (neighbour.y >= currPos.y) isMax = false;
-						if (neighbour.y <= currPos.y) isMin = false;
-
+						Vector3 neighbour = neighboursList[i][j];//to find critical points, get all mins that are neighbours and coord should be 1/n(sum(x), sum(y), sum(z))
+						if (neighbour.y > currPos.y) isMax = false;
+						if (neighbour.y < currPos.y) isMin = false;
+			
 					}
 				}
 				//if isMax or isMin add point to list
 				if (isMin) {
 					mins.push_back(currPos);
-					std::cout << "found min: " << currPos.toString() << ". neighbours: ";
-					for (int i = 0; i < vertex->second.size(); i++) {
-						std::cout << vertex->second[i].toString() << ", ";
+					if (currPos.Equals(Vector3(0.5, -0.5, 0.669099))) {
+						//std::cout << "found min: " << currPos.toString() << ". neighbours: ";
+						//for (int j = 0; j < neighboursList[i].size(); j++) {
+						//	std::cout << neighboursList[i][j].toString() << ", ";
+						//}
+						//std::cout << std::endl;
 					}
-					std::cout << std::endl;
 				}
 				if (isMax) {
 					maxs.push_back(currPos);
-					std::cout << "found max: " << currPos.toString() << ". neighbours: ";
-					for (int i = 0; i < vertex->second.size(); i++) {
-						std::cout << vertex->second[i].toString() << ", ";
+					if (currPos.Equals(Vector3(0.5, -0.5, 0.669099))) {
+						std::cout << "found max: " << currPos.toString() << ". neighbours: " << std::endl;
+						for (int j = 0; j < neighboursList[i].size(); j++) {
+							std::cout << neighboursList[i][j].toString() << ", ";
+						}
+						std::cout << std::endl;
 					}
-					std::cout << std::endl;
 				}
 			}
 			std::cout << "Done." << std::endl;
