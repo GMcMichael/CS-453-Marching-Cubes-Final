@@ -215,8 +215,14 @@ namespace myStructs {
 			//for each triangle
 			for (int i = 0; i < triangles.size(); i += 3) {
 				//for each vertex of the triangle
+				Vector3 triangleVertices[3] = {
+					vertices[triangles[i]],
+					vertices[triangles[i + 1]],
+					vertices[triangles[i + 2]]
+				};
 				for (int j = 0; j < 3; j++) {
-					Vector3 v = vertices[triangles[i + j]];
+					Vector3 v = triangleVertices[j];
+
 					int index = -1;
 					for (int k = 0; k < analyzedVertices.size(); k++) {
 						if (v.Equals(analyzedVertices[k])) {
@@ -227,20 +233,17 @@ namespace myStructs {
 
 					if (index == -1) {
 						//doesnt exist, add it to list
-						if (v.Equals(Vector3(0.5, -0.5, 0.669099))) {
-							std::cout << "adding inital vertex: " << v.toString() << "\n" << std::endl;
-						}
 						vector<Vector3> neighbours;
-						neighbours.push_back(vertices[triangles[i + 1]]);
-						neighbours.push_back(vertices[triangles[i + 2]]);
+						neighbours.push_back(triangleVertices[(j + 1) % 3]);
+						neighbours.push_back(triangleVertices[(j + 2) % 3]);
 
 						analyzedVertices.push_back(v);
 						neighboursList.push_back(neighbours);
 					}
 					else {
 						//does exist, check and add neighbours
-						Vector3 v1 = vertices[triangles[i + 1]];
-						Vector3 v2 = vertices[triangles[i + 2]];
+						Vector3 v1 = triangleVertices[(j + 1) % 3];
+						Vector3 v2 = triangleVertices[(j + 2) % 3];
 						bool containsV1 = false;
 						bool containsV2 = false;
 						for (int k = 0; k < neighboursList[index].size(); k++) {
@@ -250,9 +253,6 @@ namespace myStructs {
 						}
 						if(!containsV1) neighboursList[index].push_back(v1);
 						if(!containsV2) neighboursList[index].push_back(v2);
-						if (v.Equals(Vector3(0.5, -0.5, 0.669099))) {
-							std::cout << "vertex already exists, adding neighbours: " << (containsV1 == true ? v1.toString() + ", " : "") << (containsV2 == true ? v2.toString() : "") << "\n" << std::endl;
-						}
 					}
 				}
 			}
@@ -281,26 +281,8 @@ namespace myStructs {
 					}
 				}
 				//if isMax or isMin add point to list
-				if (isMin) {
-					mins.push_back(currPos);
-					if (currPos.Equals(Vector3(0.5, -0.5, 0.669099))) {
-						//std::cout << "found min: " << currPos.toString() << ". neighbours: ";
-						//for (int j = 0; j < neighboursList[i].size(); j++) {
-						//	std::cout << neighboursList[i][j].toString() << ", ";
-						//}
-						//std::cout << std::endl;
-					}
-				}
-				if (isMax) {
-					maxs.push_back(currPos);
-					if (currPos.Equals(Vector3(0.5, -0.5, 0.669099))) {
-						std::cout << "found max: " << currPos.toString() << ". neighbours: " << std::endl;
-						for (int j = 0; j < neighboursList[i].size(); j++) {
-							std::cout << neighboursList[i][j].toString() << ", ";
-						}
-						std::cout << std::endl;
-					}
-				}
+				if (isMin) mins.push_back(currPos);
+				if (isMax) maxs.push_back(currPos);
 			}
 			std::cout << "Done." << std::endl;
 			std::cout << "Found " << mins.size() << " min crit points." << std::endl;

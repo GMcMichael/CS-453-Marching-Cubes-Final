@@ -100,7 +100,7 @@ Main program.
 bool drawCriticalPoints = false;
 float surface = 0;
 float surfaceDelta = 0.1;
-float testRadius = 1;
+float testRadius = 5;
 bool makeNeighbourMap = false;
 bool moving = false;
 float delta = 1;
@@ -867,19 +867,6 @@ void draw_mesh() {
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
-
-	ms::Vector3 v0 = ms::Vector3(0.669099, -0.5, 0.5);
-	ms::Vector3 v1 = ms::Vector3(0.5, -0.5, 0.669099);
-	ms::Vector3 v2 = ms::Vector3(-0.5, -0.5, 0.669099);
-	ms::Vector3 v3 = ms::Vector3(0.5, -0.669099, 0.5);
-	ms::Vector3 v4 = ms::Vector3(-0.5, -0.669099, 0.5);
-	ms::Vector3 needed = ms::Vector3(0.5, 0.5, 0.669099);
-	drawDot(v0.x, v0.y, v0.z, 0.01, 1, 1);
-	drawDot(v1.x, v1.y, v1.z, 0.01, 1, 1);
-	drawDot(v2.x, v2.y, v2.z, 0.01, 1, 1);
-	drawDot(v3.x, v3.y, v3.z, 0.01, 1, 0, 1);
-	drawDot(v4.x, v4.y, v4.z, 0.01, 1, 0, 1);
-	drawDot(needed.x, needed.y, needed.z, 0.01, 0, 1, 1);
 
 	if (drawCriticalPoints) DrawCriticalPoints();
 }
